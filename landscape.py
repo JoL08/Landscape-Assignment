@@ -19,6 +19,8 @@ sun_growing = 0.2
 
 cloud_x = 100
 
+shadow_x = -100
+
 grass_green = 180
 grass_color_change = -1
 
@@ -39,13 +41,17 @@ while running:
     # GAME STATE UPDATES
     frames += 1
     cloud_x += 2
-    if cloud_x > WIDTH:
-        cloud_x = -120
-        grass_color_change *= -1
+    if cloud_x > (WIDTH + 30):
+        cloud_x = 0
+        shadow_x = -100
+        # grass_color_change *= -1
 
     # grass_green += grass_color_change
     # if grass_green <= 120 or grass_green >= 200:
     #     grass_color_change *= -1
+    
+    if (cloud_x +60) >= (750 - sun_radius) and (cloud_x - 60) <= (750 + sun_radius):
+        shadow_x += 10
     
     sun_radius += sun_growing
 
@@ -63,6 +69,15 @@ while running:
     pygame.draw.polygon(screen, (130, 130, 130), [(450, 400), (620, 200), (790, 400)])
     pygame.draw.ellipse(screen, (70, 140, 255), (250, 430, 400, 100))
     pygame.draw.ellipse(screen, (50, 100, 255), (275, 445, 350, 70))
+    pygame.draw.ellipse(screen, (30, 70, 255), (300, 460, 300, 40))
+
+# SHADOW
+    if (cloud_x) <= 750: 
+        pygame.draw.circle(screen, (50, 130, 50), (shadow_x, 500), 100)
+        pygame.draw.rect(screen, (50, 130, 50), (0, 400, shadow_x, 300))
+    pygame.draw.circle(screen, (50, 130, 50), (shadow_x, 500), 100)
+
+# GRADIENT
 
     pygame.draw.rect(screen, (200, 150, 100), (600, 300, 180, 130))
     pygame.draw.polygon(screen, (150, 75, 0), [(580, 300), (690, 220), (800, 300)])
