@@ -75,7 +75,14 @@ while running:
     if (cloud_x) <= 750: 
         pygame.draw.circle(screen, (50, 130, 50), (shadow_x, 500), 100)
         pygame.draw.rect(screen, (50, 130, 50), (0, 400, shadow_x, 300))
-    pygame.draw.circle(screen, (50, 130, 50), (shadow_x, 500), 100)
+        print(cloud_x)
+    elif cloud_x >= 750:
+        pygame.draw.rect(screen, (50, 130, 50), (450 + (shadow_x - 650), 400, shadow_x, 300))
+        pygame.draw.circle(screen, (50, 130, 50), (shadow_x - 100, 500), 100)
+    
+    
+    # CANNOT FIX 2ND PART OF THE SHADOW
+
 
 # GRADIENT
 
