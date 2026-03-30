@@ -1,3 +1,5 @@
+# add sunrise/sunset, add more functions.
+
 
 # pygame template
 import pygame
