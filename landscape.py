@@ -1,9 +1,7 @@
-# add sunrise/sunset, add more functions.
-
-
 # pygame template
 import pygame
 import math
+import random
 
 pygame.init()
 
@@ -19,10 +17,12 @@ clock = pygame.time.Clock()
 
 sun_radius = 40
 sun_growing = 0.2
-
 sun_x = 150
 sun_y = 600
+
 moon_radius = 60
+moon_growing = 0.2
+moon_shadow_radius = 50
 moon_x = 750
 moon_y = 600
 
@@ -38,16 +38,25 @@ acceleration = 0.00001
 
 frames = 0
 
+stars = []
+
+for i in range(130):
+    x = random.randint(0, WIDTH)
+    y = random.randint(0, 300)
+    r = random.randint(1, 3)
+    offset = random.uniform(0, math.pi * 2)
+    stars.append((x, y, r, offset))
+
 # -------------------------
 
 def draw_sun(x, y, sun_radius):
     pygame.draw.circle(screen, (255, 200, 80), (x, y), sun_radius)
     pygame.draw.circle(screen, (255, 255, 80), (x, y), 45)
 
-def draw_moon(x, y, moon_radius):
+def draw_moon(red, green, blue, x, y, moon_radius):
     pygame.draw.circle(screen, (200, 200, 200), (x, y), moon_radius)
     pygame.draw.circle(screen, (220, 220, 220), (x, y), moon_radius - 5)
-    pygame.draw.circle(screen, (135, 206, 235), (x + 15, y - 10), moon_radius - 10)
+    pygame.draw.circle(screen, (red, green, blue), (x + 15, y - 10), moon_shadow_radius)
 
 def draw_mountain():
     pygame.draw.polygon(screen, (120, 120, 120), [(50, 400), (180, 180), (310, 400)])
@@ -57,19 +66,15 @@ def draw_mountain():
     pygame.draw.polygon(screen, (130, 130, 130), [(450, 400), (620, 200), (790, 400)])
     pygame.draw.polygon(screen, 'white', [(620, 200), (535, 300), (580, 280), (610, 300), (640, 280), (670, 300), (705, 280)])
 
-def sunrise():
-    t = (math.sin(frames * 0.005) + 1) / 2
-    R1 = int(250 + (135 - 250) * t)
-    G1 = int(176 + (206 - 176) * t)
-    B1 = int(40  + (235 - 40)  * t)
-    screen.fill((R1, G1, B1))
-
-def sunset():
-    t = (math.sin(frames * 0.005) + 1) / 2
-    R2 = int(135 + (2   - 135) * t)
-    G2 = int(206 + (117 - 206) * t)
-    B2 = int(235 + (156 - 235) * t)
-    screen.fill((R2, G2, B2))
+def draw_stars(red, green, blue):
+    brightness = max(0, min(255, int((sun_y - 180) / 500 * 255)))
+    for x, y, r, offset in stars:
+        twinkle_strength = brightness / 100
+        twinkle = math.sin(frames * 0.05 + offset) * 40 * twinkle_strength
+        star_red = max(0, min(255, int(red + brightness + twinkle)))
+        star_green = max(0, min(255, int(green + brightness + twinkle)))
+        star_blue = max(0, min(255, int(blue + brightness + twinkle)))
+        pygame.draw.circle(screen, (star_red, star_green, star_blue), (x, y), r)
 
 running = True
 while running:
@@ -89,13 +94,22 @@ while running:
     sun_radius += sun_growing
 
     if sun_radius >= 65 or sun_radius <= 35:
-         sun_growing *= -1
+        sun_growing *= -1
 
+    moon_shadow_radius += moon_growing
+    if moon_shadow_radius >=60 or moon_shadow_radius <= 45:
+        moon_growing *= -1
+    
     # DRAWING
-    if sun_y < 400 and sun_x < 450:
-        sunrise()
-    elif sun_y < 400 and sun_x > 450:
-        sunset()
+    phase = math.pi/2 - 1.5
+    red = math.sin(frames/200 + phase) * 67 + 68
+    green = math.sin(frames/200 + phase) * 103 + 103
+    blue = math.sin(frames/200 + phase) * 117 + 118
+
+    screen.fill((int(red), int(green), int(blue)))
+
+    # stars
+    draw_stars(red, green, blue)
 
     # sun and moon
     sun_x = -math.cos(frames * speed) * 500 + 450
@@ -103,8 +117,7 @@ while running:
     draw_sun(sun_x, sun_y, sun_radius)
     moon_x = 920 - sun_x
     moon_y = 800 - sun_y
-    draw_moon(moon_x, moon_y, moon_radius)
-    print(sun_x, sun_y)
+    draw_moon(red, green, blue, moon_x, moon_y, moon_radius)
     
     # grass
     pygame.draw.rect(screen, (70, 180, 70), (0, 400, WIDTH, 200))
