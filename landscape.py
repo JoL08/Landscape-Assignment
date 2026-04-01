@@ -3,6 +3,7 @@
 
 # pygame template
 import pygame
+import math
 
 pygame.init()
 
@@ -19,16 +20,56 @@ clock = pygame.time.Clock()
 sun_radius = 40
 sun_growing = 0.2
 
+sun_x = 150
+sun_y = 600
+moon_radius = 60
+moon_x = 750
+moon_y = 600
+
 cloud_x = 100
 
 shadow_x = -100
 
-grass_green = 180
-grass_color_change = -1
+sunrise = (230, 150, 80)
+midday  = (135, 206, 235)
+
+speed = 0.005
+acceleration = 0.00001
 
 frames = 0
 
 # -------------------------
+
+def draw_sun(x, y, sun_radius):
+    pygame.draw.circle(screen, (255, 200, 80), (x, y), sun_radius)
+    pygame.draw.circle(screen, (255, 255, 80), (x, y), 45)
+
+def draw_moon(x, y, moon_radius):
+    pygame.draw.circle(screen, (200, 200, 200), (x, y), moon_radius)
+    pygame.draw.circle(screen, (220, 220, 220), (x, y), moon_radius - 5)
+    pygame.draw.circle(screen, (135, 206, 235), (x + 15, y - 10), moon_radius - 10)
+
+def draw_mountain():
+    pygame.draw.polygon(screen, (120, 120, 120), [(50, 400), (180, 180), (310, 400)])
+    pygame.draw.polygon(screen, 'white', [(180, 180), (115, 290), (150, 270), (175, 290), (200, 270), (225, 290), (235, 270)])
+    pygame.draw.polygon(screen, (100, 100, 100), [(220, 400), (380, 140), (540, 400)])
+    pygame.draw.polygon(screen, 'white', [(380, 140), (300, 270), (350, 230), (380, 250), (410, 240), (460, 270)])
+    pygame.draw.polygon(screen, (130, 130, 130), [(450, 400), (620, 200), (790, 400)])
+    pygame.draw.polygon(screen, 'white', [(620, 200), (535, 300), (580, 280), (610, 300), (640, 280), (670, 300), (705, 280)])
+
+def sunrise():
+    t = (math.sin(frames * 0.005) + 1) / 2
+    R1 = int(250 + (135 - 250) * t)
+    G1 = int(176 + (206 - 176) * t)
+    B1 = int(40  + (235 - 40)  * t)
+    screen.fill((R1, G1, B1))
+
+def sunset():
+    t = (math.sin(frames * 0.005) + 1) / 2
+    R2 = int(135 + (2   - 135) * t)
+    G2 = int(206 + (117 - 206) * t)
+    B2 = int(235 + (156 - 235) * t)
+    screen.fill((R2, G2, B2))
 
 running = True
 while running:
@@ -36,8 +77,6 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            print(event.pos)
 
 
     # GAME STATE UPDATES
@@ -46,48 +85,39 @@ while running:
     if cloud_x > (WIDTH + 30):
         cloud_x = 0
         shadow_x = -100
-        # grass_color_change *= -1
-
-    # grass_green += grass_color_change
-    # if grass_green <= 120 or grass_green >= 200:
-    #     grass_color_change *= -1
-    
-    if (cloud_x +60) >= (750 - sun_radius) and (cloud_x - 60) <= (750 + sun_radius):
-        shadow_x += 10
-    
+        
     sun_radius += sun_growing
 
     if sun_radius >= 65 or sun_radius <= 35:
          sun_growing *= -1
 
     # DRAWING
-    screen.fill((135, 206, 235))
+    if sun_y < 400 and sun_x < 450:
+        sunrise()
+    elif sun_y < 400 and sun_x > 450:
+        sunset()
+
+    # sun and moon
+    sun_x = -math.cos(frames * speed) * 500 + 450
+    sun_y = -math.sin(frames * speed) * 300 + 400
+    draw_sun(sun_x, sun_y, sun_radius)
+    moon_x = 920 - sun_x
+    moon_y = 800 - sun_y
+    draw_moon(moon_x, moon_y, moon_radius)
+    print(sun_x, sun_y)
+    
+    # grass
     pygame.draw.rect(screen, (70, 180, 70), (0, 400, WIDTH, 200))
-    pygame.draw.circle(screen, (255, 200, 80), (750, 100), sun_radius)
-    pygame.draw.circle(screen, (255, 255, 80), (750, 100), 45)
-    pygame.draw.polygon(screen, (120, 120, 120), [(50, 400), (180, 180), (310, 400)])
-    pygame.draw.polygon(screen, 'white', [(180, 180), (115, 290), (150, 270), (175, 290), (200, 270), (225, 290), (235, 270)])
-    pygame.draw.polygon(screen, (100, 100, 100), [(220, 400), (380, 140), (540, 400)])
-    pygame.draw.polygon(screen, (130, 130, 130), [(450, 400), (620, 200), (790, 400)])
+
+    # mountains
+    draw_mountain()
+
+    # pond
     pygame.draw.ellipse(screen, (70, 140, 255), (250, 430, 400, 100))
     pygame.draw.ellipse(screen, (50, 100, 255), (275, 445, 350, 70))
     pygame.draw.ellipse(screen, (30, 70, 255), (300, 460, 300, 40))
 
-# SHADOW
-    if (cloud_x) <= 750: 
-        pygame.draw.circle(screen, (50, 130, 50), (shadow_x, 500), 100)
-        pygame.draw.rect(screen, (50, 130, 50), (0, 400, shadow_x, 300))
-        print(cloud_x)
-    elif cloud_x >= 750:
-        pygame.draw.rect(screen, (50, 130, 50), (450 + (shadow_x - 650), 400, shadow_x, 300))
-        pygame.draw.circle(screen, (50, 130, 50), (shadow_x - 100, 500), 100)
-    
-    
-    # CANNOT FIX 2ND PART OF THE SHADOW
-
-
 # GRADIENT
-
     pygame.draw.rect(screen, (200, 150, 100), (600, 300, 180, 130))
     pygame.draw.polygon(screen, (150, 75, 0), [(580, 300), (690, 220), (800, 300)])
     pygame.draw.rect(screen, (100, 60, 20), (670, 360, 40, 70))
